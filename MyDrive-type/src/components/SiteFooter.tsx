@@ -4,12 +4,12 @@ export default function SiteFooter() {
       <div className="max-w-6xl mx-auto border-t border-border/40 pt-6 text-sm text-white/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>© 2025 — All rights reserved</div>
         <a
-          href="#"
+          href="http://adityakatyal-portfolio.onrender.com/"
           className="hover:text-white/80 transition-colors"
           target="_blank"
           rel="noreferrer"
         >
-          TempShare
+          Developer Portfolio
         </a>
       </div>
     </footer>
