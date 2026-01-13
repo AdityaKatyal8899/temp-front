@@ -185,7 +185,7 @@ const UploadSection = ({ onBack }: UploadSectionProps) => {
 
       try {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://127.0.0.1:5000/upload");
+        xhr.open("POST", "https://tempshare-webserver.onrender.com/upload");
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
@@ -219,7 +219,7 @@ const UploadSection = ({ onBack }: UploadSectionProps) => {
         const files = (data.files || []) as { file_id: string; filename: string; size: number; mime_type: string }[];
 
         if (!access_url && access_code) access_url = `/access/${access_code}`;
-        if (access_url && access_url.startsWith("/")) access_url = `http://127.0.0.1:5000${access_url}`;
+        if (access_url && access_url.startsWith("/")) access_url = `https://tempshare-webserver.onrender.com${access_url}`;
 
         if (!access_code || !access_url) {
           const err = "Upload succeeded but response was incomplete";
@@ -284,7 +284,7 @@ const UploadSection = ({ onBack }: UploadSectionProps) => {
     if (!accessInfo?.access_code) return;
     try {
       setIsDeleting(true);
-      const res = await fetch(`http://127.0.0.1:5000/delete/${accessInfo.access_code}`, { method: "DELETE" });
+      const res = await fetch(`https://tempshare-webserver.onrender.com/delete/${accessInfo.access_code}`, { method: "DELETE" });
       const json = await res.json().catch(() => ({} as any));
       console.log("[DEBUG] Delete response:", json);
       if (!res.ok || json.success === false) {
@@ -645,7 +645,7 @@ const UploadSection = ({ onBack }: UploadSectionProps) => {
                           <div className="text-xs text-muted-foreground">{f.mime_type}</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <a href={`http://127.0.0.1:5000/download/${sessionInfo.access_code}/${f.file_id}`} target="_blank" rel="noreferrer" className="btn-pill !bg-secondary !text-foreground">Download</a>
+                          <a href={`https://tempshare-webserver.onrender.com/download/${sessionInfo.access_code}/${f.file_id}`} target="_blank" rel="noreferrer" className="btn-pill !bg-secondary !text-foreground">Download</a>
                         </div>
                       </div>
                     ))}

@@ -52,7 +52,7 @@ const AccessSection = ({ onBack }: AccessSectionProps) => {
 
     try {
       setLoading(true);
-      const res = await fetch(`http://127.0.0.1:5000/access/${encodeURIComponent(code)}`);
+      const res = await fetch(`https://tempshare-webserver.onrender.com/access/${encodeURIComponent(code)}`);
       const json = await res.json().catch(() => ({} as any));
       if (!res.ok || json.success === false) {
         if (res.status === 404) setError("Not found");
@@ -79,7 +79,7 @@ const AccessSection = ({ onBack }: AccessSectionProps) => {
   const files = Array.isArray(session?.files) ? session.files : [];
   const fileCount = files.length;
   const current = fileCount > 0 ? files[((previewIndex % fileCount) + fileCount) % fileCount] : null;
-  const previewUrl = current ? `http://127.0.0.1:5000/preview/${session.access_code}/${current.file_id}` : "";
+  const previewUrl = current ? `https://tempshare-webserver.onrender.com/preview/${session.access_code}/${current.file_id}` : "";
 
   const toggleSelect = (fileId: string) => setSelected((prev) => ({ ...prev, [fileId]: !prev[fileId] }));
   const clearSelection = () => setSelected({});
@@ -87,11 +87,11 @@ const AccessSection = ({ onBack }: AccessSectionProps) => {
     const ids = files.filter((f: any) => selected[f.file_id]).map((f: any) => f.file_id);
     if (!session?.access_code || ids.length === 0) return;
     if (ids.length === 1) {
-      window.location.href = `http://127.0.0.1:5000/download/${session.access_code}/${ids[0]}`;
+      window.location.href = `https://tempshare-webserver.onrender.com/download/${session.access_code}/${ids[0]}`;
       return;
     }
     try {
-      const res = await fetch(`http://127.0.0.1:5000/download/batch`, {
+      const res = await fetch(`https://tempshare-webserver.onrender.com/download/batch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_code: session.access_code, file_ids: ids }),

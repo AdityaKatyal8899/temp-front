@@ -16,10 +16,10 @@ export default function ServerStatusIndicator() {
 
       try {
         // Normalize backend base URL
-        let base = (BACKEND_URL || "http://127.0.0.1:5000").trim();
+        let base = (BACKEND_URL || "https://tempshare-webserver.onrender.com").trim();
         // Ensure absolute http(s) URL; if not, default to localhost
         if (!/^https?:\/\//i.test(base)) {
-          base = "http://127.0.0.1:5000";
+          base = "https://tempshare-webserver.onrender.com";
         }
         // Build absolute health URL without duplicate slashes
         const healthUrl = `${base.replace(/\/+$/, "")}/health`;

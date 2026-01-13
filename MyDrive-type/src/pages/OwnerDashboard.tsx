@@ -15,7 +15,7 @@ import {
 import BackButton from "../components/BackButton";
 import { Trash2, Clipboard, ChevronLeft, ChevronRight } from "lucide-react";
 
-const API_BASE = "http://127.0.0.1:5000";
+const API_BASE = "https://tempshare-webserver.onrender.com";
 
 function humanSize(bytes?: number) {
   if (bytes === undefined) return "";
