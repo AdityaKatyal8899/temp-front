@@ -9,7 +9,7 @@ export default function SiteFooter() {
           target="_blank"
           rel="noreferrer"
         >
-          Portfolio
+          TempShare
         </a>
       </div>
     </footer>
