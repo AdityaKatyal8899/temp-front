@@ -1,0 +1,5 @@
+# Filename: requirements.txt
+# Purpose: Pin Python package dependencies required to run the Flask backend.
+Flask==3.0.0
+flask-cors==4.0.0
+cloudinary
