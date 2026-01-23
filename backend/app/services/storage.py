@@ -75,6 +75,13 @@ def save_file(file_obj) -> Dict[str, str]:
 
     # Upload to Cloudinary (chunked, supports large videos)
     try:
+        # Pre-log file info for diagnostics
+        try:
+            _mime = getattr(file_obj, "mimetype", "") or ""
+            _size = file_size_bytes(file_obj)
+            print(f"[UPLOAD][INFO] name={original} mime={_mime} size={_size}")
+        except Exception:
+            pass
         result = cloudinary.uploader.upload(
             file_obj,
             resource_type="auto",
@@ -82,12 +89,17 @@ def save_file(file_obj) -> Dict[str, str]:
             chunk_size=6000000,
         )
     except Exception as e:
-        print(f"[CLOUDINARY][UPLOAD ERROR] single file: {e}")
+        try:
+            _mime = getattr(file_obj, "mimetype", "") or ""
+            _size = file_size_bytes(file_obj)
+            print(f"[CLOUDINARY][UPLOAD ERROR] file={original} mime={_mime} size={_size} error={e}")
+        except Exception:
+            print(f"[CLOUDINARY][UPLOAD ERROR] file={original} error={e}")
         raise
     file_url = result.get("secure_url")
     public_id = result.get("public_id")
     res_type = result.get("resource_type")
-    print(f"[CLOUDINARY] uploaded: {public_id}")
+    print(f"[CLOUDINARY] uploaded: {public_id} resource_type={res_type}")
     return {"url": file_url, "public_id": public_id, "resource_type": res_type, "original": original}
 
 
@@ -118,6 +130,7 @@ def add_file_to_session(
     cloudinary_public_id: Optional[str],
     resource_type: Optional[str],
     file_url: Optional[str],
+    relative_path: Optional[str] = None,
 ) -> None:
     _ensure_loaded()
     session = _metadata.get("_sessions", {}).get(access_code)
@@ -133,6 +146,8 @@ def add_file_to_session(
         "file_url": file_url,
         "download_count": 0,
     }
+    if relative_path:
+        record["relative_path"] = relative_path
     session["files"].append(record)
     # Initialize preview to the first file added
     if not session.get("preview_file_id"):

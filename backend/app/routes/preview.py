@@ -22,8 +22,6 @@ preview_bp = Blueprint("preview", __name__)
 
 @preview_bp.route("/preview/<access_code>/<file_id>", methods=["GET"])  # HEAD not strictly needed for embedding
 def preview(access_code: str, file_id: str):
-    # Lazy cleanup on request
-    storage.delete_expired_files(is_expired)
 
     if not validate_string(access_code, min_len=6, max_len=8):
         return error("Invalid access code", status=400)

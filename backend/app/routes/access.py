@@ -15,8 +15,6 @@ access_bp = Blueprint("access", __name__)
 
 @access_bp.route("/access/<code>", methods=["GET"])
 def access(code: str):
-    # Lazy cleanup on access
-    storage.delete_expired_files(is_expired)
 
     if not validate_string(code, min_len=6, max_len=8):
         return error("Invalid access code", status=400)

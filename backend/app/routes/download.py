@@ -19,10 +19,21 @@ import cloudinary.api  # type: ignore
 download_bp = Blueprint("download", __name__)
 
 
+def force_download_url(url: str) -> str:
+    """Ensure Cloudinary delivery URL forces download via fl_attachment.
+
+    We do not proxy bytes; we only transform the delivery URL so that
+    Cloudinary returns Content-Disposition for download.
+    """
+    try:
+        if "/upload/" not in url:
+            return url
+        return url.replace("/upload/", "/upload/fl_attachment/")
+    except Exception:
+        return url
+
 @download_bp.route("/download/<access_code>/<file_id>", methods=["GET"])
 def download_file(access_code: str, file_id: str):
-    # Lazy cleanup on download
-    storage.delete_expired_files(is_expired)
 
     if not validate_string(access_code, min_len=6, max_len=8):
         return error("Invalid access code", status=400)
@@ -39,9 +50,6 @@ def download_file(access_code: str, file_id: str):
         return error("File not found in session", status=404)
 
     file_url = file_rec.get("file_url")
-    original_name = file_rec.get("filename", "download")
-    public_id = file_rec.get("cloudinary_public_id")
-    resource_type = (file_rec.get("resource_type") or "").lower()
 
     try:
         if request.method != "HEAD":
@@ -50,35 +58,12 @@ def download_file(access_code: str, file_id: str):
             except Exception:
                 pass
 
-        cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
-
-        # RAW (e.g., zips, pdfs uploaded as raw): use raw delivery with fl_attachment
-        if resource_type == "raw" and public_id:
-            if not cloud_name:
-                return error("Server misconfigured: CLOUDINARY_CLOUD_NAME missing", status=500)
-            raw_download_url = (
-                f"https://res.cloudinary.com/{cloud_name}/raw/upload/"
-                f"fl_attachment:{urlquote(original_name)}/{public_id}"
-            )
-            return redirect(raw_download_url)
-
-        # Images/Videos: use resource delivery with fl_attachment to force Content-Disposition
-        if public_id and resource_type in ("image", "video"):
-            if not cloud_name:
-                return error("Server misconfigured: CLOUDINARY_CLOUD_NAME missing", status=500)
-            attach_url = (
-                f"https://res.cloudinary.com/{cloud_name}/{resource_type}/upload/"
-                f"fl_attachment:{urlquote(original_name)}/{public_id}"
-            )
-            return redirect(attach_url)
-
-        # Fallback: if we don't have public_id (unexpected), attempt query param flags
         if not file_url:
             return error("File missing", status=404)
-        sep = "&" if "?" in file_url else "?"
-        filename_param = urlquote(original_name)
-        download_url = f"{file_url}{sep}dl=1&attachment=true&filename={filename_param}"
-        return redirect(download_url)
+
+        # Force download by inserting fl_attachment into the Cloudinary delivery URL.
+        download_url = force_download_url(file_url)
+        return redirect(download_url, code=302)
     except FileNotFoundError:
         return error("File missing", status=404)
     except Exception:
@@ -88,7 +73,6 @@ def download_file(access_code: str, file_id: str):
 @download_bp.route("/download/<access_code>", methods=["GET"])
 def download_legacy(access_code: str):
     """Back-compat: download the first (or only) file in a session."""
-    storage.delete_expired_files(is_expired)
     if not validate_string(access_code, min_len=6, max_len=8):
         return error("Invalid access code", status=400)
     session = storage.get_session(access_code)

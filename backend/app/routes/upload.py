@@ -19,7 +19,7 @@ upload_bp = Blueprint("upload", __name__)
 
 @upload_bp.route("/upload", methods=["POST"])
 def upload():
-    # Lazy cleanup of expired files/entries
+    # Lazy cleanup of expired files/entries (safe here)
     storage.delete_expired_files(is_expired)
     try:
         print(f"[DEBUG] Upload Content-Length: {request.content_length}")
@@ -33,6 +33,10 @@ def upload():
     files_multi = [f for f in files_multi if getattr(f, "filename", "")]
     if not files_multi:
         return error("No files provided", status=400)
+    try:
+        print(f"[UPLOAD] files_received={len(files_multi)}")
+    except Exception:
+        pass
 
     # Directory heuristic remains but we now always create one session
     is_directory = any(("/" in f.filename) or ("\\" in f.filename) for f in files_multi)
@@ -73,6 +77,10 @@ def upload():
     for idx, file in enumerate(files_multi):
         mimetype = getattr(file, "mimetype", "") or ""
         size_b = storage.file_size_bytes(file)
+        try:
+            print(f"[UPLOAD][FILE] idx={idx} name={getattr(file,'filename','')} mime={mimetype} size={size_b}")
+        except Exception:
+            pass
         if mimetype.startswith("video/"):
             if size_b > LIMIT_VIDEO:
                 return error("Video exceeds 2GB limit", status=400)
@@ -95,6 +103,12 @@ def upload():
             return error("Failed to save file", status=500)
 
         file_id = f"f{idx+1}_{''.join(random.choice(ALPHABET) for _ in range(4))}"
+        # Preserve client-provided relative path if available (from folder uploads)
+        try:
+            rel_path = getattr(file, "filename", "") or ""
+            rel_path = rel_path.lstrip("/\\")
+        except Exception:
+            rel_path = ""
         storage.add_file_to_session(
             access_code=code,
             file_id=file_id,
@@ -104,6 +118,7 @@ def upload():
             cloudinary_public_id=saved.get("public_id"),
             resource_type=saved.get("resource_type"),
             file_url=saved.get("url"),
+            relative_path=rel_path or None,
         )
         uploaded_files.append({
             "file_id": file_id,
