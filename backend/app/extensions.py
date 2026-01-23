@@ -9,8 +9,10 @@ from flask_cors import CORS
 cors = CORS(
     resources={
         r"*": {
-            "origins": ["http://localhost:5173"],
-            "methods": ["GET", "POST", "DELETE"],
+            "origins": ["https://tempshare-ten.vercel.app", "https://localhost:5173"],
+            "methods": ["GET", "POST", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": False,
         }
     }
 )
